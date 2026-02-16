@@ -1,0 +1,30 @@
+Resolving dependencies...
+Downloading packages...
+  meta 1.17.0 (1.18.1 available)
+Got dependencies!
+1 package has newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Building macOS application...                                   
+ld: warning: ignoring duplicate libraries: '-lc++'
+ld: warning: ignoring duplicate libraries: '-lc++'
+ld: warning: ignoring duplicate libraries: '-lc++'
+ld: warning: ignoring duplicate libraries: '-lc++'
+/Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/stateful_session_service_config_parser.dia:1:1: warning: Could not read serialized diagnostics file: error("Invalid diagnostics signature") (in target 'gRPC-Core' from project 'Pods')
+Rename failed: /Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/stateful_session_service_config_parser-86a6680e.d.tmp (exists) -> /Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/stateful_session_service_config_parser.d: No space left on device
+error: error writing '/Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/stateful_session_service_config_parser.d': /Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/stateful_session_service_config_parser-86a6680e.d.tmp => /Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/stateful_session_service_config_parser.d: No space left on device
+1 error generated.
+warning: unable to open file /Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/stateful_session_service_config_parser.dia for serializing diagnostics (No space left on device) [-Wserialized-diagnostics]
+Command CompileC failed with a nonzero exit code
+/Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/ssl_transport_security.dia:1:1: warning: Could not read serialized diagnostics file: error("Failed to open diagnostics file") (in target 'gRPC-Core' from project 'Pods')
+error: error opening '/Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/ssl_transport_security.d': /Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/ssl_transport_security.d: No space left on device
+1 error generated.
+warning: unable to open file /Users/kanishkjoshi/Desktop/dating App/build/macos/Build/Intermediates.noindex/Pods.build/Release/gRPC-Core.build/Objects-normal/x86_64/ssl_transport_security.dia for serializing diagnostics (No space left on device) [-Wserialized-diagnostics]
+Command CompileC failed with a nonzero exit code
+warning: Run script build phase 'Run Script' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'Flutter Assemble' from project 'Runner')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'gRPC-Core' from project 'Pods')
+** BUILD FAILED **
+
+
+
+Build process failed
+
