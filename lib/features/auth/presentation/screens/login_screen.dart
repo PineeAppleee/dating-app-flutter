@@ -4,44 +4,45 @@ import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/repositories/auth_repository.dart';
+import 'phone_login_sheet.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  Future<void> _onLogin(BuildContext context) async {
-    debugPrint("🔘 _onLogin (Phone/Anon) called - STEP 1");
+  void _onPhoneLogin(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => const PhoneLoginSheet(),
+    );
+  }
+
+  Future<void> _onAppleLogin(BuildContext context) async {
+    debugPrint("🍎 _onAppleLogin called");
     try {
-      // 1. Sign In (using anonymous for demo, replace with Google/Apple later)
-      // Ideally inject repository, but for now instantiate directly or use Provider
       final authRepo = AuthRepository();
-      debugPrint("Step 2: Calling signInAnonymously...");
-      final credential = await authRepo.signInAnonymously();
-      debugPrint("Step 3: Signed in. User: ${credential.user?.uid}");
-      
+      final credential = await authRepo.signInWithApple();
+
+      if (!context.mounted) return;
+
       if (credential.user != null) {
-        // 2. Check Database for Profile
-        debugPrint("Step 4: Checking profile existence...");
         final exists = await authRepo.checkProfileExists(credential.user!.uid);
-        debugPrint("Step 5: Profile exists? $exists");
-        
         if (context.mounted) {
-          if (exists) {
-            debugPrint("Step 6: Navigating to /discover");
-            context.go('/discover');
-          } else {
-            debugPrint("Step 6: Navigating to /profile_setup");
-            context.go('/profile_setup');
-          }
-        } else {
-          debugPrint("⚠️ Context not mounted after profile check!");
+           if (exists) {
+             context.go('/discover');
+           } else {
+             context.go('/profile_setup');
+           }
         }
       }
-    } catch (e, stack) {
-      debugPrint("❌ Login Error: $e");
-      debugPrint("Stack: $stack");
+    } catch (e) {
+      debugPrint("Apple Login Error: $e");
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Login Failed: $e")),
+          SnackBar(content: Text("Apple Login Failed: $e")),
         );
       }
     }
@@ -81,7 +82,16 @@ class LoginScreen extends StatelessWidget {
       debugPrint("Google Login Error: $e");
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Google Login Failed: $e")),
+          SnackBar(
+            content: Text("Google Login Failed: $e"),
+            duration: const Duration(seconds: 10), // Show for longer
+            action: SnackBarAction(
+              label: "Copy Error",
+              onPressed: () {
+                // Optional: helper to copy if needed
+              },
+            ),
+          ),
         );
       }
     }
@@ -138,14 +148,14 @@ class LoginScreen extends StatelessWidget {
               _buildSocialButton(
                 icon: FontAwesomeIcons.apple,
                 text: "Continue with Apple",
-                onPressed: () => _onLogin(context),
+                onPressed: () => _onAppleLogin(context),
                 isDark: isDark,
               ),
               const SizedBox(height: 16),
               _buildSocialButton(
                 icon: FontAwesomeIcons.phone,
                 text: "Use Phone Number",
-                onPressed: () => _onLogin(context),
+                onPressed: () => _onPhoneLogin(context),
                 isDark: isDark,
               ),
               const SizedBox(height: 40),

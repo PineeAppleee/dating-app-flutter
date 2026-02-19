@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../onboarding_state.dart';
 import '../widgets/identity_step.dart';
@@ -48,7 +47,6 @@ class _ProfileOnboardingContentState extends State<_ProfileOnboardingContent> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<OnboardingState>();
-    final theme = Theme.of(context);
 
     // Sync PageController with State
     // We use a post-frame callback to ensure the PageView is ready

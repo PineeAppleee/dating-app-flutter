@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../widgets/custom_bottom_navigation.dart';
 
 class MainScreen extends StatelessWidget {
@@ -11,9 +9,6 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       extendBody: true,
       body: child,

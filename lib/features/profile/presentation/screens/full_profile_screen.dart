@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/mock_data.dart';
 

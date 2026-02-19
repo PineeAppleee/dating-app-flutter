@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/repositories/auth_repository.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'edit_profile_screen.dart';
+import 'manage_photos_screen.dart';
+import 'preferences_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -180,10 +182,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 32),
                   
+                  // Gallery
+                  if (photoUrls.length > 1) ...[
+                     Text(
+                      "Gallery",
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 120,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: photoUrls.length,
+                        itemBuilder: (context, index) {
+                          // Skip the first photo as it's already shown in AppBar
+                          if (index == 0) return const SizedBox.shrink();
+                          
+                          return Container(
+                            margin: const EdgeInsets.only(right: 12),
+                            width: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                photoUrls[index], 
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],   
+
+
+
                   // Settings Actions
-                  _buildSettingsTile(Icons.person, "Edit Profile", () {}),
-                  _buildSettingsTile(Icons.photo_library, "Change Photos", () {}),
-                  _buildSettingsTile(Icons.tune, "Preferences", () {}),
+                  _buildSettingsTile(
+                      Icons.person,
+                      "Edit Profile",
+                      () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => EditProfileScreen(userData: _userData!)),
+                        );
+                        if (result == true) {
+                          _fetchProfile(); // Refresh
+                        }
+                      }
+                  ),
+                  _buildSettingsTile(
+                      Icons.photo_library,
+                      "Change Photos",
+                      () async {
+                         await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ManagePhotosScreen(initialPhotos: photoUrls)),
+                        );
+                        // Refresh regardless, as photos might have changed
+                         _fetchProfile();
+                      }
+                  ),
+                  _buildSettingsTile(
+                      Icons.tune,
+                      "Preferences",
+                      () async {
+                          final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => PreferencesScreen(userData: _userData!)),
+                          );
+                          if (result == true) {
+                            _fetchProfile(); 
+                          }
+                      }
+                  ),
                   _buildSettingsTile(Icons.privacy_tip, "Privacy Settings", () {}),
                   const SizedBox(height: 20),
                   
@@ -192,7 +277,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: ElevatedButton(
                       onPressed: () async {
                           await AuthRepository().signOut();
-                          // Navigate to Login/Splash
+                          if (context.mounted) {
+                            context.go('/login');
+                          }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red.withOpacity(0.1),

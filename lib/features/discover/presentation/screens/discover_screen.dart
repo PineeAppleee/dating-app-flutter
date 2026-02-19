@@ -325,17 +325,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     
     return true;
   }
-
-  bool _onUndo(
-    int? previousIndex,
-    int currentIndex,
-    CardSwiperDirection direction,
-  ) {
-    debugPrint(
-      'The card $currentIndex was undod from the ${direction.name}',
-    );
-    return true;
-  }
 }
 
 class ProfileCard extends StatelessWidget {

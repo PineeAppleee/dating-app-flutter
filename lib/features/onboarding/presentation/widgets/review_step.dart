@@ -3,23 +3,93 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../onboarding_state.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/repositories/auth_repository.dart';
+import '../../../../core/repositories/storage_repository.dart';
 
-class ReviewStep extends StatelessWidget {
+class ReviewStep extends StatefulWidget {
   const ReviewStep({super.key});
+
+  @override
+  State<ReviewStep> createState() => _ReviewStepState();
+}
+
+class _ReviewStepState extends State<ReviewStep> {
+  bool _isLoading = false;
+
+  Future<void> _completeProfile(BuildContext context, OnboardingState state) async {
+    setState(() => _isLoading = true);
+
+    try {
+      final authRepo = AuthRepository();
+      final storageRepo = StorageRepository();
+      final user = authRepo.currentUser;
+
+      if (user == null) {
+        if (mounted) context.go('/login');
+        return;
+      }
+
+      // 1. Upload Photos
+      List<String> photoUrls = [];
+      for (var xFile in state.photos) {
+        final url = await storageRepo.uploadProfileImage(xFile, user.uid);
+        photoUrls.add(url);
+      }
+
+      // 2. Prepare Data Structure (Optimized)
+      final userProfile = {
+        'basicInfo': {
+          'name': state.name,
+          'dob': state.dob != null ? Timestamp.fromDate(state.dob!) : null,
+          'gender': state.gender,
+          // 'bio': state.bio, // Add bio step later
+        },
+        'profileParams': {
+          'religion': state.religion,
+          // 'beliefs': state.beliefs, // Add beliefs step later
+          'interests': state.interests,
+          'interestedIn': state.interestedIn,
+        },
+        'photos': photoUrls,
+        'meta': {
+          'isProfileCompleted': true,
+          'createdAt': FieldValue.serverTimestamp(),
+          // 'location': GeoPoint(0, 0), // Use later
+        }
+      };
+
+      // 3. Save to Firestore
+      await authRepo.saveUserProfile(user.uid, userProfile);
+
+      if (mounted) {
+        context.go('/discover');
+      }
+    } catch (e, stack) {
+      debugPrint("❌ SAVE PROFILE ERROR: $e");
+      debugPrint("Stack: $stack");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error saving profile: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<OnboardingState>();
     final theme = Theme.of(context);
 
-    // Default image if none (should check state.photos.isNotEmpty based on validation)
+    // Default image
     dynamic mainPhoto;
     if (state.photos.isNotEmpty) {
       if (kIsWeb) {
@@ -78,21 +148,34 @@ class ReviewStep extends StatelessWidget {
                 children: [
                   // Photo
                   if (mainPhoto != null)
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                      child: kIsWeb 
-                        ? Image.network(
-                            mainPhoto as String,
-                            height: 300,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            mainPhoto as File,
-                            height: 300,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                          child: kIsWeb 
+                            ? Image.network(
+                                mainPhoto as String,
+                                height: 300,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                mainPhoto as File,
+                                height: 300,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                        ),
+                        if (_isLoading)
+                          Positioned.fill(
+                            child: Container(
+                              color: Colors.black45,
+                              child: const Center(
+                                child: CircularProgressIndicator(color: Colors.white),
+                              ),
+                            ),
                           ),
+                      ],
                     ),
                   
                   Padding(
@@ -172,43 +255,7 @@ class ReviewStep extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () async {
-                  try {
-                      final authRepo = AuthRepository();
-                      final user = authRepo.currentUser;
-                      
-                      if (user != null) {
-                          // Prepare data
-                          final data = {
-                              'name': state.name,
-                              'dob': state.dob?.toIso8601String(),
-                              'gender': state.gender,
-                              'interestedIn': state.interestedIn,
-                              'interests': state.interests,
-                              'religion': state.religion,
-                              'photoUrls': state.photos.map((e) => e.path).toList(), // In real app, upload to Storage first!
-                              'createdAt': FieldValue.serverTimestamp(),
-                          };
-                          
-                          await authRepo.saveUserProfile(user.uid, data);
-                          
-                          if (context.mounted) {
-                              context.go('/discover'); 
-                          }
-                      } else {
-                          // Handle unexpected logged out state
-                          context.go('/login');
-                      }
-                  } catch (e, stack) {
-                      debugPrint("❌ SAVE PROFILE ERROR: $e");
-                      debugPrint("Stack: $stack");
-                      if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Error saving: $e")),
-                          );
-                      }
-                  }
-              },
+              onPressed: _isLoading ? null : () => _completeProfile(context, state),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
@@ -219,13 +266,19 @@ class ReviewStep extends StatelessWidget {
                 elevation: 5,
                 shadowColor: AppTheme.primaryColor.withOpacity(0.5),
               ),
-              child: Text(
-                "Complete Profile",
-                style: GoogleFonts.poppins(
-                  fontSize: 18, 
-                  fontWeight: FontWeight.bold
-                ),
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 24, 
+                      width: 24, 
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                    )
+                  : Text(
+                      "Complete Profile",
+                      style: GoogleFonts.poppins(
+                        fontSize: 18, 
+                        fontWeight: FontWeight.bold
+                      ),
+                    ),
             ),
           ),
         ],

@@ -113,7 +113,6 @@ class PhotosStep extends StatelessWidget {
   }
 
   Widget _buildPhotoItem(BuildContext context, OnboardingState state, int index) {
-      final theme = Theme.of(context);
       final path = state.photos[index].path;
       
       ImageProvider imageProvider;

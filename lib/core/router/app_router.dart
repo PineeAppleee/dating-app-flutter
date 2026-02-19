@@ -1,12 +1,10 @@
 import 'package:go_router/go_router.dart';
-import 'package:flutter/material.dart';
 
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/profile_onboarding_screen.dart';
 import '../../features/home/presentation/screens/main_screen.dart';
-import '../../features/home/presentation/screens/placeholders.dart';
 import '../../features/discover/presentation/screens/discover_screen.dart';
 import '../../features/matches/presentation/screens/matches_screen.dart';
 import '../../features/likes/presentation/screens/likes_screen.dart';

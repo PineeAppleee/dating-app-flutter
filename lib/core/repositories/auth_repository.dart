@@ -1,6 +1,7 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -58,6 +59,56 @@ class AuthRepository {
     );
 
     // Once signed in, return the UserCredential
+    return await _auth.signInWithCredential(credential);
+  }
+
+  // Apple Sign-In
+  Future<UserCredential> signInWithApple() async {
+    // For Android, we need specific configuration
+    // You must create a Service ID in Apple Developer Console and configure it.
+    // Replace 'com.example.service' with your Service ID.
+    // Replace the redirect URI with your Firebase project's redirect URI.
+    
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      webAuthenticationOptions: WebAuthenticationOptions(
+        clientId: 'com.your.service.id', // TODO: Update this to your Service ID from Apple Developer Console
+        redirectUri: Uri.parse(
+          'https://your-project-id.firebaseapp.com/__/auth/handler', // TODO: Update this to your Firebase handler
+        ),
+      ),
+    );
+
+    final OAuthCredential credential = OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      accessToken: appleCredential.authorizationCode,
+    );
+
+    return await _auth.signInWithCredential(credential);
+  }
+
+  // Phone Authentication
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required void Function(PhoneAuthCredential) verificationCompleted,
+    required void Function(FirebaseAuthException) verificationFailed,
+    required void Function(String, int?) codeSent,
+    required void Function(String) codeAutoRetrievalTimeout,
+  }) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: verificationCompleted,
+      verificationFailed: verificationFailed,
+      codeSent: codeSent,
+      codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+    );
+  }
+
+  // Sign in with custom credential (e.g. from Phone Auth)
+  Future<UserCredential> signInWithCredential(AuthCredential credential) async {
     return await _auth.signInWithCredential(credential);
   }
 
