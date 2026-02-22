@@ -118,11 +118,18 @@ class AuthRepository {
     await _auth.signOut();
   }
 
-  // Check if user profile exists in Firestore
+  // Check if user profile exists and is completed in Firestore
   Future<bool> checkProfileExists(String uid) async {
     try {
       final doc = await _firestore.collection('users').doc(uid).get();
-      return doc.exists;
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null && data.containsKey('meta')) {
+          final meta = data['meta'] as Map<String, dynamic>;
+          return meta['isProfileCompleted'] == true;
+        }
+      }
+      return false;
     } catch (e) {
       // Handle error gracefully, maybe retry or assume false
       return false;

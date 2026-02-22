@@ -66,13 +66,11 @@ class _ReviewStepState extends State<ReviewStep> {
       // 3. Save to Firestore
       await authRepo.saveUserProfile(user.uid, userProfile);
 
-      if (mounted) {
-        context.go('/discover');
-      }
+      // Routing is handled automatically by GoRouter redirect
     } catch (e, stack) {
       debugPrint("❌ SAVE PROFILE ERROR: $e");
       debugPrint("Stack: $stack");
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error saving profile: $e")),
         );

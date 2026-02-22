@@ -12,12 +12,43 @@ import '../../features/chat/presentation/screens/chat_list_screen.dart';
 import '../../features/chat/presentation/screens/chat_detail_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/full_profile_screen.dart';
+import '../providers/auth_notifier.dart';
 import '../../core/utils/mock_data.dart'; // For User Model
 
 class AppRouter {
-  static final router = GoRouter(
-    initialLocation: '/',
-    routes: [
+  static GoRouter createRouter(AuthNotifier authNotifier) {
+    return GoRouter(
+      initialLocation: '/',
+      refreshListenable: authNotifier,
+      redirect: (context, state) {
+        final path = state.uri.path;
+        print("🚀 ROUTER REDIRECT CALLED: $path");
+        print("isLoading: ${authNotifier.isLoading}, isLoggedIn: ${authNotifier.user != null}, hasProfile: ${authNotifier.profileExists}");
+        
+        if (authNotifier.isLoading) {
+          return path == '/' ? null : '/'; // Stay on splash screen while loading
+        }
+
+        final isLoggedIn = authNotifier.user != null;
+        final hasProfile = authNotifier.profileExists;
+        final isLoggingIn = path == '/login' || path == '/onboarding';
+        final isSplash = path == '/';
+
+        if (!isLoggedIn) {
+          return isLoggingIn ? null : '/onboarding';
+        }
+
+        if (!hasProfile) {
+          return path == '/profile_setup' ? null : '/profile_setup';
+        }
+
+        if (isLoggingIn || isSplash || path == '/profile_setup') {
+          return '/discover';
+        }
+
+        return null;
+      },
+      routes: [
       GoRoute(
         path: '/',
         builder: (context, state) => const SplashScreen(),
@@ -81,4 +112,5 @@ class AppRouter {
       ),
     ],
   );
+  }
 }

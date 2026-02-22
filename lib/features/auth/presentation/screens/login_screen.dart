@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/repositories/auth_repository.dart';
 import 'phone_login_sheet.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool _isLoading = false;
 
   void _onPhoneLogin(BuildContext context) {
     showModalBottomSheet(
@@ -21,23 +27,13 @@ class LoginScreen extends StatelessWidget {
   }
 
   Future<void> _onAppleLogin(BuildContext context) async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
     debugPrint("🍎 _onAppleLogin called");
     try {
       final authRepo = AuthRepository();
-      final credential = await authRepo.signInWithApple();
-
-      if (!context.mounted) return;
-
-      if (credential.user != null) {
-        final exists = await authRepo.checkProfileExists(credential.user!.uid);
-        if (context.mounted) {
-           if (exists) {
-             context.go('/discover');
-           } else {
-             context.go('/profile_setup');
-           }
-        }
-      }
+      await authRepo.signInWithApple();
+      // Routing is handled automatically by GoRouter redirect
     } catch (e) {
       debugPrint("Apple Login Error: $e");
       if (context.mounted) {
@@ -45,39 +41,20 @@ class LoginScreen extends StatelessWidget {
           SnackBar(content: Text("Apple Login Failed: $e")),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _onGoogleLogin(BuildContext context) async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
     debugPrint("🔵 _onGoogleLogin called");
     try {
       final authRepo = AuthRepository();
       // Show loading indicator or disable button here if stateful
-      final credential = await authRepo.signInWithGoogle();
-      
-      if (!context.mounted) return;
-
-      if (credential.user != null) {
-        // Check Database for Profile
-        try {
-          final exists = await authRepo.checkProfileExists(credential.user!.uid);
-          
-          if (context.mounted) {
-            if (exists) {
-              context.go('/discover');
-            } else {
-              context.go('/profile_setup');
-            }
-          }
-        } catch (e) {
-          debugPrint("Profile Check Error: $e");
-          if (context.mounted) {
-             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Profile Check Failed: $e")),
-            );
-          }
-        }
-      }
+      await authRepo.signInWithGoogle();
+      // Routing is handled automatically by GoRouter redirect
     } catch (e) {
       debugPrint("Google Login Error: $e");
       if (context.mounted) {
@@ -94,6 +71,8 @@ class LoginScreen extends StatelessWidget {
           ),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -138,26 +117,30 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              _buildSocialButton(
-                icon: FontAwesomeIcons.google,
-                text: "Continue with Google",
-                onPressed: () => _onGoogleLogin(context),
-                isDark: isDark,
-              ),
-              const SizedBox(height: 16),
-              _buildSocialButton(
-                icon: FontAwesomeIcons.apple,
-                text: "Continue with Apple",
-                onPressed: () => _onAppleLogin(context),
-                isDark: isDark,
-              ),
-              const SizedBox(height: 16),
-              _buildSocialButton(
-                icon: FontAwesomeIcons.phone,
-                text: "Use Phone Number",
-                onPressed: () => _onPhoneLogin(context),
-                isDark: isDark,
-              ),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else ...[
+                _buildSocialButton(
+                  icon: FontAwesomeIcons.google,
+                  text: "Continue with Google",
+                  onPressed: () => _onGoogleLogin(context),
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildSocialButton(
+                  icon: FontAwesomeIcons.apple,
+                  text: "Continue with Apple",
+                  onPressed: () => _onAppleLogin(context),
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildSocialButton(
+                  icon: FontAwesomeIcons.phone,
+                  text: "Use Phone Number",
+                  onPressed: () => _onPhoneLogin(context),
+                  isDark: isDark,
+                ),
+              ],
               const SizedBox(height: 40),
               Text.rich(
                 TextSpan(

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/repositories/auth_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -277,9 +276,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: ElevatedButton(
                       onPressed: () async {
                           await AuthRepository().signOut();
-                          if (context.mounted) {
-                            context.go('/login');
-                          }
+                          // Routing is handled automatically by GoRouter redirect
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red.withOpacity(0.1),

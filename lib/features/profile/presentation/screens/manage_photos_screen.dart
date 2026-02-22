@@ -1,7 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import '../../../../core/repositories/storage_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -22,7 +21,7 @@ class _ManagePhotosScreenState extends State<ManagePhotosScreen> {
   @override
   void initState() {
     super.initState();
-    _photos = List.from(widget.initialPhotos);  
+    _photos = List.from(widget.initialPhotos);
   }
 
   Future<void> _pickAndUploadImage() async {
@@ -34,7 +33,8 @@ class _ManagePhotosScreenState extends State<ManagePhotosScreen> {
     }
 
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final XFile? image =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
 
     if (image == null) return;
 
@@ -42,14 +42,13 @@ class _ManagePhotosScreenState extends State<ManagePhotosScreen> {
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
 
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('user_uploads/${user.uid}/profile_photos/${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-      await ref.putFile(File(image.path));
-      final url = await ref.getDownloadURL();
+      final storageRepo = StorageRepository();
+      final url = await storageRepo.uploadProfileImage(image, user.uid);
 
       setState(() {
         _photos.add(url);
@@ -81,7 +80,6 @@ class _ManagePhotosScreenState extends State<ManagePhotosScreen> {
     setState(() {
       _photos.removeAt(index);
     });
-    // Optimistically update UI, then sync
     await _updateFirestore();
   }
 
@@ -91,12 +89,11 @@ class _ManagePhotosScreenState extends State<ManagePhotosScreen> {
       if (user != null) {
         await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
           'photoUrls': _photos,
-          'photos': _photos, // Maintain both structures for now
+          'photos': _photos,
         });
       }
     } catch (e) {
       debugPrint("Error syncing photos: $e");
-      // Revert if needed, or show error
     }
   }
 
@@ -104,8 +101,8 @@ class _ManagePhotosScreenState extends State<ManagePhotosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Manage Photos")),
-      body: _isLoading 
-          ? const Center(child: CircularProgressIndicator()) 
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
           : GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -141,7 +138,6 @@ class _ManagePhotosScreenState extends State<ManagePhotosScreen> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    // Make Main Button (if not already main)
                     if (index != 0)
                       Positioned(
                         top: 4,
@@ -162,7 +158,6 @@ class _ManagePhotosScreenState extends State<ManagePhotosScreen> {
                           ),
                         ),
                       ),
-                    
                     Positioned(
                       top: 4,
                       right: 4,

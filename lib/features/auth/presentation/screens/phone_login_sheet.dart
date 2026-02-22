@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import '../../../../core/repositories/auth_repository.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -109,25 +108,20 @@ class _PhoneLoginSheetState extends State<PhoneLoginSheet> {
       await _signInWithCredential(credential);
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Invalid OTP: $e")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Invalid OTP: $e")),
+        );
+      }
     }
   }
 
   Future<void> _signInWithCredential(AuthCredential credential) async {
     try {
-      final userCredential = await _authRepo.signInWithCredential(credential);
-      if (userCredential.user != null) {
-        final exists = await _authRepo.checkProfileExists(userCredential.user!.uid);
-        if (mounted) {
-           Navigator.pop(context); // Close sheet
-           if (exists) {
-             context.go('/discover');
-           } else {
-             context.go('/profile_setup');
-           }
-        }
+      await _authRepo.signInWithCredential(credential);
+      if (mounted) {
+         Navigator.pop(context); // Close sheet
+         // Routing is handled automatically by GoRouter redirect
       }
     } catch (e) {
       setState(() => _isLoading = false);

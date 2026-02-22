@@ -19,9 +19,11 @@ class PhotosStep extends StatelessWidget {
         }
     } catch (e) {
         // Handle error or permission denial
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to pick image")),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Failed to pick image")),
+          );
+        }
     }
   }
 

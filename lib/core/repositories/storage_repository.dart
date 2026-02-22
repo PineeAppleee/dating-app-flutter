@@ -1,35 +1,45 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 class StorageRepository {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  // Upload an image to Firebase Storage and return the download URL
   Future<String> uploadProfileImage(XFile imageFile, String userId) async {
     try {
-      // Create a unique file name using timestamp
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.name}';
-      
-      // Reference to storage location: user_uploads/{uid}/profile_photos/{fileName}
-      final Reference ref = _storage
-          .ref()
-          .child('user_uploads/$userId/profile_photos/$fileName');
 
-      // Upload file with metadata
-      final UploadTask uploadTask = ref.putFile(
-        File(imageFile.path),
-        SettableMetadata(contentType: 'image/jpeg'), // Adjust based on file type if needed
-      );
+      print("🔥 CLOUDINARY FUNCTION RUNNING");
 
-      // Wait for upload to complete
-      final TaskSnapshot snapshot = await uploadTask;
+      const cloudName = "diqu7suef";
+      const uploadPreset = "mioryygp";
 
-      // Get download URL
-      final String downloadUrl = await snapshot.ref.getDownloadURL();
-      return downloadUrl;
+      final url = Uri.parse(
+          "https://api.cloudinary.com/v1_1/$cloudName/image/upload");
+
+      var request = http.MultipartRequest('POST', url)
+        ..fields['upload_preset'] = uploadPreset
+        ..files.add(await http.MultipartFile.fromPath(
+          'file',
+          imageFile.path,
+        ));
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.bytesToString();
+        final jsonData = json.decode(responseData);
+
+        String imageUrl = jsonData['secure_url'];
+        print("✅ UPLOAD SUCCESS: $imageUrl");
+
+        return imageUrl;
+      } else {
+        throw Exception("Cloudinary upload failed");
+      }
+
     } catch (e) {
-      throw Exception('Failed to upload image: $e');
+      print("❌ UPLOAD ERROR: $e");
+      throw Exception("Failed to upload image: $e");
     }
   }
 }

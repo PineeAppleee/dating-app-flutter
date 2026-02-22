@@ -43,6 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/android_sdk/    # Local Android SDK - auto-installed
 
 # Firebase
 android/app/google-services.json
@@ -54,4 +55,17 @@ macos/Runner/GoogleService-Info.plist
 
 # CocoaPods
 ios/Pods/
+ios/Podfile.lock
 macos/Pods/
+macos/Podfile.lock
+
+# Xcode build artifacts
+**/xcworkspace/xcuserdata/
+**/xcworkspace/xcshareddata/
+**/DerivedData/
+**/build/
+**/Pods/
+
+# Generated files
+**/GeneratedPluginRegistrant.java
+**/GeneratedPluginRegistrant.m
